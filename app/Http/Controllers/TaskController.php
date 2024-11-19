@@ -44,14 +44,14 @@ class TaskController extends Controller
         $task->save();
 
         return response()->json([
-            'task' => $task,
+            'task' => new TaskResource($task),
         ], 201);
     }
     public function show($id)
     {
         $task = Task::findOrFail($id);
         return response()->json([
-            'task' => $task,
+            'task' => new TaskResource($task),
         ]);
     }
     public function update(UpdateTaskRequest $request, $id)
@@ -68,7 +68,7 @@ class TaskController extends Controller
         $task->save();
         return response()->json([
             'message' => 'Task updated',
-            'task' => $task,
+            'task' => new TaskResource($task),
         ]);
     }
     public function destroy($id)
