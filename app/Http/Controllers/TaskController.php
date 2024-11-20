@@ -7,15 +7,16 @@ use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
     public function index()
     {
-        $tasks = Task::with('user')->paginate(10);
+        $tasks = Task::with('user', 'category')->paginate(10);
         return response()->json([
-            'posts' => TaskResource::collection($tasks),
+            'tasks' => TaskResource::collection($tasks),
             'links' => [
                 'first' => $tasks->url(1),
                 'last' => $tasks->url($tasks->lastPage()),
@@ -35,16 +36,20 @@ class TaskController extends Controller
     }
     public function store(StoreTaskRequest $request)
     {
+        $term = Carbon::parse($request->term);
+        $time = Carbon::createFromFormat('H:i', $request->time, 'Asia/Tashkent');
         $task = new Task();
         $task->user_id = Auth::id();
+        $task->category_id = $request->category_id;
         $task->title = $request->title;
         $task->description = $request->description;
         $task->status = 'Not Done';
-        $task->term = $request->term;
-        $task->save();
+        $task->term = $term;
+        $task->time = $time->format('H:i');
 
+        $task->save();
         return response()->json([
-            'task' => new TaskResource($task),
+            'task' => new TaskResource($task->load('category')),
         ], 201);
     }
     public function show($id)
@@ -56,19 +61,24 @@ class TaskController extends Controller
     }
     public function update(UpdateTaskRequest $request, $id)
     {
+        $term = Carbon::parse($request->term);
+        $time = Carbon::createFromFormat('H:i', $request->time, 'Asia/Tashkent');
+
         $task = Task::findOrFail($id);
         if (Auth::id() !== $task->user_id) {
             return response()->json([
                 'message' => "This task isn't yours",
             ], 403);
         }
+        $task->category_id = $request->category_id;
         $task->title = $request->title;
         $task->description = $request->description;
-        $task->term = $request->term;
+        $task->term = $term;
+        $task->time = $time->format('H:i');
         $task->save();
         return response()->json([
             'message' => 'Task updated',
-            'task' => new TaskResource($task),
+            'task' => new TaskResource($task->load('category')),
         ]);
     }
     public function destroy($id)
@@ -91,7 +101,7 @@ class TaskController extends Controller
         })->paginate(8);
 
         return response()->json([
-            'posts' => TaskResource::collection($tasks),
+            'tasks' => TaskResource::collection($tasks->load('category')),
             'links' => [
                 'first' => $tasks->url(1),
                 'last' => $tasks->url($tasks->lastPage()),
