@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 
 class UpdateTaskRequest extends FormRequest
 {
@@ -23,8 +24,21 @@ class UpdateTaskRequest extends FormRequest
     {
         return [
             'title' => 'nullable|min:5',
+            'category_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|max:225',
-            'term' => 'nullable|date|after:created_at'
+            'term' => 'nullable|date_format:Y-m-d',
+            'time' => [
+                'nullable',
+                'date_format:H:i',
+                function ($attribute, $value, $fail) {
+                    $today = Carbon::now('Asia/Tashkent')->toDateString();
+                    $currentTime = Carbon::now('Asia/Tashkent')->format('H:i');
+
+                    if (request('term') === $today && $value <= $currentTime) {
+                        $fail('The ' . $attribute . ' must be a time after the current time for today.');
+                    }
+                }
+            ],
         ];
     }
 }
