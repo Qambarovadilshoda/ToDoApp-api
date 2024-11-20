@@ -21,8 +21,11 @@ class TaskResource extends JsonResource
             'status' => $this->status,
             'created_at' => $this->created_at,
             'term' => $this->term,
+            'time' => $this->time,
+            'category' => new CategoryResource($this->whenLoaded('category')),
             'user' => $this->whenLoaded('user', function () {
                 return new UserResource($this->user);
-            })];
+            })
+        ];
     }
 }
