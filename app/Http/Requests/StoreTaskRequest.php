@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 
 class StoreTaskRequest extends FormRequest
 {
@@ -21,12 +22,26 @@ class StoreTaskRequest extends FormRequest
      */
 
 
-    public function rules(): array
-    {
-        return [
-            'title' => 'required|min:5',
-            'description' => 'required|max:225',
-            'term' => 'required|date|after:' . now()->toDateString(),
-        ];
-    }
+     public function rules(): array
+     {
+         return [
+             'category_id' => 'required|exists:categories,id',
+             'title' => 'required|min:5',
+             'description' => 'required|max:225',
+             'term' => 'required|date_format:Y-m-d',
+             'time' => [
+                 'required',
+                 'date_format:H:i',
+                 function ($attribute, $value, $fail) {
+                     $today = Carbon::now('Asia/Tashkent')->toDateString();
+                     $currentTime = Carbon::now('Asia/Tashkent')->format('H:i');
+
+                     if (request('term') === $today && $value <= $currentTime) {
+                         $fail('The ' . $attribute . ' must be a time after the current time for today.');
+                     }
+                 }
+             ],
+         ];
+     }
+
 }
