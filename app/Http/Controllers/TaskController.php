@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreTaskRequest;
-use App\Http\Requests\UpdateTaskRequest;
-use App\Http\Resources\TaskResource;
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use App\Http\Resources\TaskResource;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\UpdateTaskRequest;
 
 class TaskController extends Controller
 {
@@ -124,8 +125,9 @@ class TaskController extends Controller
         $task = Task::findOrFail($id);
         $task->status = 'Done';
         $task->save();
-        return response()->json([
+        return response()->json(data: [
             'message' => 'The task was marked as completed'
         ]);
     }
+    
 }
